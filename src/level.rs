@@ -7,7 +7,8 @@ use tokio::fs::OpenOptions;
 pub struct Level {
     pub name: String,
     pub author: String,
-    pub rate: i32
+    pub rate: i32,
+    pub size: u64
 }
 
 impl Level {
@@ -32,7 +33,7 @@ impl Level {
     pub async fn save_level_data(path: String, path2: String, data: &Vec<u8>) {
         let file1 = OpenOptions::new().read(true).open(&path2).await;
         match file1 {
-            Ok(_) => {},
+            Ok(file) => {},
             Err(_) => { return}
         }
 

@@ -10,11 +10,12 @@ use std::os::linux::fs;
 use std::os::unix::net::SocketAddr;
 use std::path::Path;
 use std::sync::Arc;
+use std::time::Duration;
 use serde::de::Unexpected::Str;
 use serde_json::Value::Array;
 use tokio::sync::Mutex;
 use tokio::task;
-use tokio::time::Instant;
+use tokio::time::{Instant, sleep};
 use crate::level::Level;
 
 #[tokio::main]
@@ -31,10 +32,8 @@ async fn main() {
     let addr_clone = addr_list.clone();
     let clear = task::spawn(async move {
         loop {
-            if cleared_at.elapsed().as_secs() > 5 * 60 {
-                cleared_at = Arc::new(Instant::now());
-                addr_clone.lock().await.clear();
-            }
+            sleep(Duration::from_secs(5*60)).await;
+            addr_clone.lock().await.clear();
         }
     });
     loop {
@@ -42,7 +41,7 @@ async fn main() {
         let (mut socket, _) = listener.accept().await.unwrap();
 
         tokio::spawn( async move {
-            let mut buffer = vec![0; (1024*1024)*5];
+            let mut buffer = vec![0; (1024*1024)*20];
 
             loop {
                 let n = socket.read(&mut buffer).await.unwrap();
@@ -52,7 +51,7 @@ async fn main() {
 
                 match buffer[0] {
                     0 => {
-                        let version = "1.0".as_bytes();
+                        let version = [2];
                         socket.write_all(&version).await.expect("failed to write data")
                     }
                     1 => {
@@ -64,13 +63,13 @@ async fn main() {
                         let paths = read_dir("./levels/").unwrap();
                         let mut level_array: Vec<Level> = vec![];
                         for (index, path) in paths.enumerate() {
-                            if index <= ((page - 1) * 4) as usize {
+                            if index < ((page - 1) * 4) as usize {
                                 continue
                             }
                             let level = Level::load_level(path.unwrap().path().as_path()).await;
                             level_array.push(level);
                             println!("{}", index);
-                            if index >= ((page - 1) * 4 + 4) as usize {
+                            if index >= ((page - 1) * 4 + 3) as usize {
                                 break;
                             }
                         }
@@ -79,10 +78,7 @@ async fn main() {
                         socket.write_all(&answer).await.expect("failed to respond with level array");
                     }
                     2 => {
-                        let data = buffer[1..buffer.len()].to_vec()
-                            .into_iter()
-                            .filter(|x| x != &0_u8)
-                            .collect::<Vec<u8>>();
+                        let data = buffer[1..n].to_vec();
                         let mut name = String::new();
                         data.iter().for_each(|c| name.push(*c as char));
 
