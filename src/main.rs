@@ -44,7 +44,7 @@ async fn main() {
             let mut buffer = vec![0; (1024*1024)*20];
 
             loop {
-                let n = socket.read_to_end(&mut buffer).await.unwrap();
+                let n = socket.read(&mut buffer).await.unwrap();
                 if n == 0 {
                     return
                 }
@@ -131,7 +131,11 @@ async fn main() {
                         ).expect("name");
                         let data = buffer[10..n].to_vec();
 
-                        Level::save_level_data(format!("./level_data/{}", name), format!("./levels/{}", name),&data).await;
+                        let size_as_u32 = Level::save_level_data(format!("./level_data/{}", name), format!("./levels/{}", name),&data).await;
+                        let size: [u8; 4] = size_as_u32.to_be_bytes();
+                        println!("{} {} {} {}", size[0], size[1], size[2], size[3]);
+
+                        socket.write_all(&size).await.unwrap();
                     }
                     _ => {}
                 }

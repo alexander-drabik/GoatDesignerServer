@@ -2,6 +2,7 @@ use std::path::Path;
 use tokio::fs;
 use serde::{Deserialize, Serialize};
 use tokio::fs::OpenOptions;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[derive(Serialize, Deserialize)]
 pub struct Level {
@@ -30,18 +31,24 @@ impl Level {
         }
     }
 
-    pub async fn save_level_data(path: String, path2: String, data: &Vec<u8>) {
+    pub async fn save_level_data(path: String, path2: String, data: &Vec<u8>) -> u32 {
         let file1 = OpenOptions::new().read(true).open(&path2).await;
         match file1 {
             Ok(file) => {},
-            Err(_) => { return}
+            Err(_) => { return 0 }
         }
 
-        let file = OpenOptions::new().read(true).open(&path).await;
+        let file = OpenOptions::new().append(true).read(true).open(&path).await;
         match file {
-            Ok(_) => {}
+            Ok(mut f) => {
+                f.write_all(&data).await.unwrap();
+                let mut buffer = [];
+                f.read(&mut buffer).await.unwrap();
+                buffer.len() as u32
+            }
             Err(_) => {
                 fs::write(path, data).await.unwrap();
+                data.len() as u32
             }
         }
     }
