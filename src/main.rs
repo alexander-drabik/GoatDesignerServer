@@ -60,7 +60,7 @@ async fn main() {
                             return;
                         }
 
-                        let paths = read_dir("./levels/").unwrap();
+                        let paths = read_dir("levels/").unwrap();
                         let mut level_array: Vec<Level> = vec![];
                         for (index, path) in paths.enumerate() {
                             if index < ((page - 1) * 4) as usize {
@@ -82,7 +82,7 @@ async fn main() {
                         let mut name = String::new();
                         data.iter().for_each(|c| name.push(*c as char));
 
-                        let answer = read(format!("./level_data/{}", name)).unwrap();
+                        let answer = read(format!("level_data/{}", name)).unwrap();
 
                         println!("{}", answer.len());
 
