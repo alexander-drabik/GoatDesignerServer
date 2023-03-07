@@ -44,7 +44,7 @@ async fn main() {
             let mut buffer = vec![0; (1024*1024)*20];
 
             loop {
-                let n = socket.read(&mut buffer).await.unwrap();
+                let n = socket.read_to_end(&mut buffer).await.unwrap();
                 if n == 0 {
                     return
                 }
