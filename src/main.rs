@@ -125,18 +125,6 @@ async fn main() {
                             }
                         }
                     }
-                    4 => {
-                        let name = String::from_utf8(
-                            buffer[1..10].to_vec().into_iter().filter(|x| x != &0_u8).collect::<Vec<u8>>()
-                        ).expect("name");
-                        let data = buffer[10..n].to_vec();
-
-                        let size_as_u32 = Level::save_level_data(format!("./level_data/{}", name), format!("./levels/{}", name),&data).await;
-                        let size: [u8; 4] = size_as_u32.to_be_bytes();
-                        println!("{} {} {} {}", size[0], size[1], size[2], size[3]);
-
-                        socket.write_all(&size).await.unwrap();
-                    }
                     _ => {}
                 }
             }

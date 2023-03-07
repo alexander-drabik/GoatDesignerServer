@@ -31,24 +31,19 @@ impl Level {
         }
     }
 
-    pub async fn save_level_data(path: String, path2: String, data: &Vec<u8>) -> u32 {
+    pub async fn save_level_data(path: String, path2: String, data: &Vec<u8>) {
         let file1 = OpenOptions::new().read(true).open(&path2).await;
         match file1 {
             Ok(file) => {},
-            Err(_) => { return 0 }
+            Err(_) => { return }
         }
 
         let file = OpenOptions::new().append(true).read(true).open(&path).await;
         match file {
             Ok(mut f) => {
-                f.write_all(&data).await.unwrap();
-                let mut buffer = [];
-                f.read(&mut buffer).await.unwrap();
-                buffer.len() as u32
             }
             Err(_) => {
                 fs::write(path, data).await.unwrap();
-                data.len() as u32
             }
         }
     }
