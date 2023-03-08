@@ -54,7 +54,7 @@ async fn main() {
 
                 match buffer[0] {
                     0 => {
-                        let version = [2];
+                        let version = [3];
                         socket.write_all(&version).await.expect("failed to write data")
                     }
                     1 => {
