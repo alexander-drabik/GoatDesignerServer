@@ -4,6 +4,8 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 
 use std::env;
+use std::env::current_exe;
+use std::fmt::format;
 use std::fs::{read, read_dir};
 use std::net::IpAddr;
 use std::os::linux::fs;
@@ -37,6 +39,7 @@ async fn main() {
         }
     });
     loop {
+        let dir = current_exe().unwrap().parent().unwrap().to_str().unwrap().to_string();
         let current_addr_list = addr_list.clone();
         let (mut socket, _) = listener.accept().await.unwrap();
 
@@ -60,7 +63,9 @@ async fn main() {
                             return;
                         }
 
-                        let paths = read_dir("levels/").unwrap();
+                        let paths = read_dir(
+                            format!("{}/{}", dir, "levels/")
+                            ).unwrap();
                         let mut level_array: Vec<Level> = vec![];
                         for (index, path) in paths.enumerate() {
                             if index < ((page - 1) * 4) as usize {
@@ -82,7 +87,7 @@ async fn main() {
                         let mut name = String::new();
                         data.iter().for_each(|c| name.push(*c as char));
 
-                        let answer = read(format!("level_data/{}", name)).unwrap();
+                        let answer = read(format!("{}/level_data/{}", dir, name)).unwrap();
 
                         println!("{}", answer.len());
 
@@ -112,7 +117,7 @@ async fn main() {
                                     let _ = socket.write_all(&buffer).await;
                                 } else {
                                     level.author = socket.peer_addr().expect("").ip().to_string();
-                                    let response = level.save_level().await;
+                                    let response = level.save_level(format!("{}/levels/", dir)).await;
                                     buffer[0] = response;
                                     if response == 0  {
                                         let _ = socket.write_all(&buffer).await;

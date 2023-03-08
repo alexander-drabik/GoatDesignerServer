@@ -19,13 +19,13 @@ impl Level {
         level
     }
 
-    pub async fn save_level(&self) -> u8 {
-        let file = OpenOptions::new().read(true).open(format!("levels/{}", self.name)).await;
+    pub async fn save_level(&self, path: String) -> u8 {
+        let file = OpenOptions::new().read(true).open(format!("{}{}", path,self.name)).await;
         match file {
             Ok(_) => 0,
             Err(_) => {
                 let json = serde_json::to_vec(self).expect("TAK");
-                fs::write( format!("levels/{}", self.name), json).await.unwrap();
+                fs::write( format!("{}{}", path, self.name), json).await.unwrap();
                 1
             }
         }
